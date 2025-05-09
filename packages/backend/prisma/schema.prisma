@@ -1,0 +1,25 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+/// Stores a batch forecast for N-hour horizon.
+/// Actuals and errors get filled in by a later evaluation job.
+model Forecast {
+  id            Int       @id @default(autoincrement())
+  sensorId      String
+  horizonHours  Int
+  createdAt     DateTime  @default(now())
+  predictions   Json      // e.g. [12, 15, 10] for the next 3 hours
+  actuals       Json?     // null until evaluated, then [11, 14, 9]
+  errors        Json?     // null until evaluated, then [1, 1, 1]
+  evaluatedAt   DateTime? // timestamp when actuals/errors were written
+
+  @@index([sensorId])
+  @@index([createdAt])
+}
